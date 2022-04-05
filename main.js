@@ -11,12 +11,18 @@ function log(data) {
 }
 
 class NewWeb3Object {
-  constructor(name, year) {
+
+  constructor() {
     this.web3 = null;
+    this.etherscanAPI = "";
     this.contracts = {
       tokens: {},
       nfts: {},
     };
+  }
+
+  saveSelf() {
+    sessionStorage.setItem('metabridge-web3-bridge', this);
   }
 
   getNFTs() {
@@ -38,6 +44,23 @@ class NewWeb3Object {
   }
 
   /**
+   * Add etherscan API to this object
+   *
+   * @param   {string}  apiKey  The API key for etherscan.
+   *
+   * @return  {bool}            Indication of success or failure.
+   */
+  addEtherscanAPI(apiKey) {
+    try {
+      this.etherscanAPI = apikey;
+      return true;
+    } catch (e) {
+      logError(e, "Failed to get NFT's");
+      return false;
+    }
+  }
+
+  /**
    * Add a new token to the list
    *
    * @param   {string}  tokenName    The name of the token stored
@@ -54,9 +77,11 @@ class NewWeb3Object {
       switch (tokenType.toLowerCase()) {
         case 'nft':
           this.contracts.nfts[tokenName.toLowerCase()] = newToken;
+          this.saveSelf();
           return true;
         case 'token':
           this.contracts.tokens[tokenName.toLowerCase()] = newToken;
+          this.saveSelf();
           return true;
         default:
           this.logError('MB-ERROR',
@@ -78,9 +103,9 @@ class NewWeb3Object {
    * @param   {dict}    parameters   Other parameters to use for the mint function.
    *    Accepted parameters are mintName:string, mintFee:string
    *
-   * @return  {none}              Nothing will be returned.
+   * @return  {object}               Response Object from metamask.
    */
-  async mint (tokenName, tokenType, mintAmount = 1, parameters={}) {
+  async mint(tokenName, tokenType, mintAmount = 1, parameters={}) {
     let tokenToMint = null;
     let mintFunctionName = parameters.get('mintName', 'mint');
     const mintFee = parameters.get('mintFee', null);
@@ -155,9 +180,36 @@ class NewWeb3Object {
       return this.logError(e, 'Failed to mint the token.');
     }
   }
+
+  /**
+   * Get the token address.
+   *
+   * @param   {string}  tokenAddress  The contract address.
+   *
+   * @return  {object}                An array of the contract ABI.
+   */
+  async getABI(tokenAddress) {
+    const url = "https://api.etherscan.io/api?module=contract&"+
+      "action=getsourcecode&address={"+tokenAddress+"}&apikey="+
+      this.etherscanAPI;
+    const response = await fetch(url);
+    const data = await response.json();
+    try {
+      return data["result"][0]["ABI"];
+    } catch (e) {
+      return []
+    }
+  }
 }
 
-var wrappedWeb3 = new NewWeb3Object()
+var wrappedWeb3 = null;
+const savedWeb3 = sessionStorage.getItem('metabridge-web3-bridge');
+console.log("SAVED", savedWeb3)
+if (savedWeb3) {
+  wrappedWeb3 = savedWeb3;
+} else {
+  wrappedWeb3 = new NewWeb3Object();
+}
 
 window.addEventListener('load', function() {
   // Load web3
@@ -175,5 +227,3 @@ window.addEventListener('load', function() {
       "No injected web3 nor EXTERNALPROVIDER provided.")
   }
 })
-
-console.log(wrappedWeb3.getTokens())

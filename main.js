@@ -25,6 +25,10 @@ class NewWeb3Object {
     sessionStorage.setItem('metabridge-web3-bridge', this);
   }
 
+  saveWeb3(web3Obj) {
+    this.web3 = web3Obj;
+  }
+
   getNFTs() {
     try {
       return this.contracts.nfts;
@@ -215,12 +219,12 @@ window.addEventListener('load', function() {
   // Load web3
   if (typeof web3 !== 'undefined') {
     window.web3 = new Web3(web3.currentProvider);
-    wrappedWeb3.web3 = window.web3;
+    wrappedWeb3.saveWeb3(window.web3);
     WEB3READY = true;
   } else {
     if (EXTERNALPROVIDER != undefined) {
       window.web3 = new Web3(new Web3.providers.HttpProvider(EXTERNALPROVIDER));
-      wrappedWeb3.web3 = window.web3;
+      wrappedWeb3.saveWeb3(window.web3);
       WEB3READY = true;
     }
     console.warn("Web3 is not available." +

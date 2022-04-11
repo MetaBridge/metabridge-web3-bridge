@@ -244,12 +244,14 @@ var loadAll = null;
 const savedWeb3 = sessionStorage.getItem('metabridge-web3-bridge');
 console.log("SAVED", savedWeb3)
 if (savedWeb3) {
+  console.log("Loading old web3");
   wrappedWeb3 = savedWeb3;
 } else {
+  console.log("Creating new Web3");
   wrappedWeb3 = new NewWeb3Object();
 }
 
-var loadAll = new NewLoadAll();
+loadAll = new NewLoadAll();
 
 window.addEventListener('load', function() {
   if (WEB3READY != true) {

@@ -221,11 +221,21 @@ window.addEventListener('load', function() {
     window.web3 = new Web3(web3.currentProvider);
     wrappedWeb3.saveWeb3(window.web3);
     WEB3READY = true;
+    try {
+      LOADPAGE();
+    } catch (e) {
+      console.log("No LOADPAGE function.");
+    }
   } else {
     if (EXTERNALPROVIDER != undefined) {
       window.web3 = new Web3(new Web3.providers.HttpProvider(EXTERNALPROVIDER));
       wrappedWeb3.saveWeb3(window.web3);
       WEB3READY = true;
+      try {
+        LOADPAGE();
+      } catch (e) {
+        console.log("No LOADPAGE function.");
+      }
     }
     console.warn("Web3 is not available." +
       "No injected web3 nor EXTERNALPROVIDER provided.")

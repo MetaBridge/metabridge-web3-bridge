@@ -206,6 +206,10 @@ class NewWeb3Object {
   }
 }
 class NewLoadAll() {
+  constructor() {
+    this.test = false;
+  }
+
   load() {
     console.log("In Load All")
     // Load web3

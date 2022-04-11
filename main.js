@@ -205,8 +205,38 @@ class NewWeb3Object {
     }
   }
 }
+class NewLoadAll() {
+  load() {
+    console.log("In Load All")
+    // Load web3
+    if (typeof web3 !== 'undefined') {
+      window.web3 = new Web3(web3.currentProvider);
+      wrappedWeb3.saveWeb3(window.web3);
+      WEB3READY = true;
+      try {
+        LOADPAGE();
+      } catch (e) {
+        console.log("No LOADPAGE function.");
+      }
+    } else {
+      if (EXTERNALPROVIDER != undefined) {
+        window.web3 = new Web3(new Web3.providers.HttpProvider(EXTERNALPROVIDER));
+        wrappedWeb3.saveWeb3(window.web3);
+        WEB3READY = true;
+        try {
+          LOADPAGE();
+        } catch (e) {
+          console.log("No LOADPAGE function.");
+        }
+      }
+      console.warn("Web3 is not available." +
+        "No injected web3 nor EXTERNALPROVIDER provided.")
+    }
+  }
+}
 
 var wrappedWeb3 = null;
+var loadAll = null;
 const savedWeb3 = sessionStorage.getItem('metabridge-web3-bridge');
 console.log("SAVED", savedWeb3)
 if (savedWeb3) {
@@ -215,33 +245,7 @@ if (savedWeb3) {
   wrappedWeb3 = new NewWeb3Object();
 }
 
-var loadAll = () => {
-  console.log("In Load All")
-  // Load web3
-  if (typeof web3 !== 'undefined') {
-    window.web3 = new Web3(web3.currentProvider);
-    wrappedWeb3.saveWeb3(window.web3);
-    WEB3READY = true;
-    try {
-      LOADPAGE();
-    } catch (e) {
-      console.log("No LOADPAGE function.");
-    }
-  } else {
-    if (EXTERNALPROVIDER != undefined) {
-      window.web3 = new Web3(new Web3.providers.HttpProvider(EXTERNALPROVIDER));
-      wrappedWeb3.saveWeb3(window.web3);
-      WEB3READY = true;
-      try {
-        LOADPAGE();
-      } catch (e) {
-        console.log("No LOADPAGE function.");
-      }
-    }
-    console.warn("Web3 is not available." +
-      "No injected web3 nor EXTERNALPROVIDER provided.")
-  }
-}
+var loadAll = new NewLoadAll();
 
 window.addEventListener('load', function() {
   if (WEB3READY != true) {

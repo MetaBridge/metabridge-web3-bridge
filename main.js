@@ -215,8 +215,8 @@ if (savedWeb3) {
   wrappedWeb3 = new NewWeb3Object();
 }
 
-window.addEventListener('load', function() {
-  console.log("PAGE LOADED");
+loadAll() {
+  console.log("In Load All")
   // Load web3
   if (typeof web3 !== 'undefined') {
     window.web3 = new Web3(web3.currentProvider);
@@ -240,5 +240,11 @@ window.addEventListener('load', function() {
     }
     console.warn("Web3 is not available." +
       "No injected web3 nor EXTERNALPROVIDER provided.")
+  }
+}
+
+window.addEventListener('load', function() {
+  if (WEB3READY != true) {
+    loadAll()
   }
 })

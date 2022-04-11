@@ -215,7 +215,7 @@ if (savedWeb3) {
   wrappedWeb3 = new NewWeb3Object();
 }
 
-loadAll() {
+function loadAll() {
   console.log("In Load All")
   // Load web3
   if (typeof web3 !== 'undefined') {

@@ -216,6 +216,7 @@ if (savedWeb3) {
 }
 
 window.addEventListener('load', function() {
+  console.log("PAGE LOADED");
   // Load web3
   if (typeof web3 !== 'undefined') {
     window.web3 = new Web3(web3.currentProvider);

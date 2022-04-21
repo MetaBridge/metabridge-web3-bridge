@@ -14,6 +14,7 @@ class NewWeb3Object {
 
   constructor() {
     this.web3 = null;
+    this.currentWallet = "";
     this.etherscanAPI = "";
     this.contracts = {
       tokens: {},
@@ -26,12 +27,12 @@ class NewWeb3Object {
   }
 
   saveWeb3(web3Obj) {
-    this.web3 = web3Obj;
+    window.wrappedWeb3.web3 = web3Obj;
   }
 
   getNFTs() {
     try {
-      return this.contracts.nfts;
+      return window.wrappedWeb3.contracts.nfts;
     } catch (e) {
       logError(e, "Failed to get NFT's")
       return {}
@@ -40,7 +41,7 @@ class NewWeb3Object {
 
   getTokens() {
     try {
-      return this.contracts.tokens;
+      return window.wrappedWeb3.contracts.tokens;
     } catch (e) {
       logError(e, "Failed to get NFT's")
       return {}
@@ -56,10 +57,47 @@ class NewWeb3Object {
    */
   addEtherscanAPI(apiKey) {
     try {
-      this.etherscanAPI = apikey;
+      window.wrappedWeb3.etherscanAPI = apikey;
       return true;
     } catch (e) {
       logError(e, "Failed to get NFT's");
+      return false;
+    }
+  }
+
+  /**
+   * Connect to Users wallet
+   *
+   * @return  {bool}            Indication of success or failure.
+   */
+  async connectWallet() {
+    try {
+      let wallets = await window.ethereum.enable();
+      if (wallets.length > 0) {
+        window.wrappedWeb3.currentWallet = wallets[0];
+      }
+
+      console.log(window.wrappedWeb3.currentWallet);
+      return true;
+    } catch (e) {
+      logError(e, "Failed to connect to User's wallet");
+      return false;
+    }
+  }
+
+  /**
+   * Check if wallet is connected
+   *
+   * @return  {bool}            Indication of success or failure.
+   */
+  isConnected() {
+    try {
+      if (window.wrappedWeb3.currentWallet != "") {
+        return true;
+      }
+      return false;
+    } catch (e) {
+      logError(e, "Failed to connect to User's wallet");
       return false;
     }
   }
@@ -76,19 +114,19 @@ class NewWeb3Object {
    */
   async newContract(tokenName, tokenType, tokenAddress, abi=[]) {
     try {
-      const tokenContract = this.web3.eth.contract(abi);
+      const tokenContract = window.wrappedWeb3.web3.eth.contract(abi);
       const newToken = tokenContract.at(tokenAddress);
       switch (tokenType.toLowerCase()) {
         case 'nft':
-          this.contracts.nfts[tokenName.toLowerCase()] = newToken;
-          this.saveSelf();
+          window.wrappedWeb3.contracts.nfts[tokenName.toLowerCase()] = newToken;
+          window.wrappedWeb3.saveSelf();
           return true;
         case 'token':
-          this.contracts.tokens[tokenName.toLowerCase()] = newToken;
-          this.saveSelf();
+          window.wrappedWeb3.contracts.tokens[tokenName.toLowerCase()] = newToken;
+          window.wrappedWeb3.saveSelf();
           return true;
         default:
-          this.logError('MB-ERROR',
+          window.wrappedWeb3.logError('MB-ERROR',
             ['The tokenType given is not supported.', tokenType]);
           return false;
       }
@@ -113,34 +151,34 @@ class NewWeb3Object {
     let tokenToMint = null;
     let mintFunctionName = parameters.get('mintName', 'mint');
     const mintFee = parameters.get('mintFee', null);
-    const paramsToSend = {from: this.currentAccount};
+    const paramsToSend = {from: window.wrappedWeb3.currentAccount};
 
     if ('mintName' in parameters) mintFunctionName = parameters.mintName;
     if ('mintFee' in parameters) paramsToSend.value = parameters.mintFee;
 
     switch (tokenType.toLowerCase()) {
       case 'nft':
-        tokenToMint = this.getNFTs().get(tokenName.toLowerCase(), null);
+        tokenToMint = window.wrappedWeb3.getNFTs().get(tokenName.toLowerCase(), null);
         break;
       case 'token':
-        tokenToMint = this.getTokens().get(tokenName.toLowerCase(), null);
+        tokenToMint = window.wrappedWeb3.getTokens().get(tokenName.toLowerCase(), null);
         break;
       default:
-        return this.logError('MB-ERROR',
+        return window.wrappedWeb3.logError('MB-ERROR',
           ['The tokenType given is not supported.', tokenType]);
     }
 
     if (tokenToMint == null) {
-    	return this.logError('MB-ERROR', ['The tokenName is not found.', tokenName]);
+    	return window.wrappedWeb3.logError('MB-ERROR', ['The tokenName is not found.', tokenName]);
     }
 
     try {
       const response = await tokenToMint.token[mintFunctionName](mintAmount)
         .send(paramsToSend);
-      this.log(response);
+      window.wrappedWeb3.log(response);
       return response;
     } catch (e) {
-      return this.logError(e, 'Failed to mint the token.');
+      return window.wrappedWeb3.logError(e, 'Failed to mint the token.');
     }
   }
 
@@ -157,20 +195,20 @@ class NewWeb3Object {
    */
   async runFunction(tokenName, tokenType, functionName, fields=[], parameters={}) {
     if (!("from" in parameters)) {
-      parameters.from = this.currentAccount;
+      parameters.from = window.wrappedWeb3.currentAccount;
     }
 
     let tokenToInteract = null;
 
     switch (tokenType.toLowerCase()) {
       case 'nft':
-        tokenToInteract = this.getNFTs().get(tokenName.toLowerCase(), null);
+        tokenToInteract = window.wrappedWeb3.getNFTs().get(tokenName.toLowerCase(), null);
         break;
       case 'token':
-        tokenToInteract = this.getTokens().get(tokenName.toLowerCase(), null);
+        tokenToInteract = window.wrappedWeb3.getTokens().get(tokenName.toLowerCase(), null);
         break;
       default:
-        this.logError('MB-ERROR',
+        window.wrappedWeb3.logError('MB-ERROR',
           ['The tokenType given is not supported.', tokenType]);
         return {}
     }
@@ -178,10 +216,10 @@ class NewWeb3Object {
     try {
       const response = await tokenToInteract.token[functionName](...fields)
         .send(parameters);
-      this.log(response);
+      window.wrappedWeb3.log(response);
       return response;
     } catch (e) {
-      return this.logError(e, 'Failed to mint the token.');
+      return window.wrappedWeb3.logError(e, 'Failed to mint the token.');
     }
   }
 
@@ -195,7 +233,7 @@ class NewWeb3Object {
   async getABI(tokenAddress) {
     const url = "https://api.etherscan.io/api?module=contract&"+
       "action=getsourcecode&address={"+tokenAddress+"}&apikey="+
-      this.etherscanAPI;
+      window.wrappedWeb3.etherscanAPI;
     const response = await fetch(url);
     const data = await response.json();
     try {
@@ -205,9 +243,9 @@ class NewWeb3Object {
     }
   }
 }
-class NewLoadAll() {
+class NewLoadAll {
   constructor() {
-    this.test = false;
+
   }
 
   load() {
@@ -242,12 +280,9 @@ class NewLoadAll() {
 var wrappedWeb3 = null;
 var loadAll = null;
 const savedWeb3 = sessionStorage.getItem('metabridge-web3-bridge');
-console.log("SAVED", savedWeb3)
 if (savedWeb3) {
-  console.log("Loading old web3");
   wrappedWeb3 = savedWeb3;
 } else {
-  console.log("Creating new Web3");
   wrappedWeb3 = new NewWeb3Object();
 }
 
@@ -255,6 +290,6 @@ loadAll = new NewLoadAll();
 
 window.addEventListener('load', function() {
   if (WEB3READY != true) {
-    window.loadAll()
+    window.loadAll.load()
   }
 })

@@ -114,8 +114,9 @@ class NewWeb3Object {
    */
   async newContract(tokenName, tokenType, tokenAddress, abi=[]) {
     try {
-      const tokenContract = window.wrappedWeb3.web3.eth.contract(abi);
-      const newToken = tokenContract.at(tokenAddress);
+      // const tokenContract = window.wrappedWeb3.web3.eth.Contract(abi, tokenAddress);
+      const newToken = new window.wrappedWeb3.web3.eth.Contract(abi, tokenAddress);
+      // const newToken = tokenContract.at(tokenAddress);
       switch (tokenType.toLowerCase()) {
         case 'nft':
           window.wrappedWeb3.contracts.nfts[tokenName.toLowerCase()] = newToken;

@@ -254,7 +254,7 @@ class NewLoadAll {
     // Load web3
     if (typeof web3 !== 'undefined') {
       window.web3 = new Web3(web3.currentProvider);
-      wrappedWeb3.saveWeb3(window.web3);
+      // wrappedWeb3.saveWeb3(window.web3);
       WEB3READY = true;
       try {
         LOADPAGE();
@@ -264,7 +264,7 @@ class NewLoadAll {
     } else {
       if (EXTERNALPROVIDER != undefined) {
         window.web3 = new Web3(new Web3.providers.HttpProvider(EXTERNALPROVIDER));
-        wrappedWeb3.saveWeb3(window.web3);
+        // wrappedWeb3.saveWeb3(window.web3);
         WEB3READY = true;
         try {
           LOADPAGE();
